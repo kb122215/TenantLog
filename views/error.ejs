@@ -1,0 +1,16 @@
+<%- include('partials/head', { title: status === 404 ? 'Not found' : 'Error' }) %>
+<body>
+  <% if (locals.currentUser) { %>
+    <%- include('partials/header') %>
+  <% } %>
+
+  <main class="page">
+    <section class="empty error-page">
+      <i class="fa-solid fa-<%= status === 404 ? 'magnifying-glass' : 'triangle-exclamation' %>" aria-hidden="true"></i>
+      <p class="error-code"><%= status %></p>
+      <p><%= message %></p>
+      <p><a class="btn btn-primary" href="/">Back to TenantLog</a></p>
+    </section>
+  </main>
+</body>
+</html>

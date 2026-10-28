@@ -1,0 +1,155 @@
+<%- include('partials/head', { title: repair.title }) %>
+<body>
+  <%- include('partials/header') %>
+
+  <main class="page">
+    <a class="back-link" href="/dashboard"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> All requests</a>
+    <%- include('partials/flash') %>
+
+    <div class="detail-layout">
+      <div class="detail-main">
+
+        <% if (editing) { %>
+          <!-- ---------- Edit form ---------- -->
+          <section class="card detail-card">
+            <h2><i class="fa-solid fa-pen" aria-hidden="true"></i> Edit request</h2>
+            <% if (formError) { %>
+              <p class="form-error" role="alert"><%= formError %></p>
+            <% } %>
+            <form class="form form-grid" action="/requests/<%= repair.id %>?_method=PATCH" method="POST">
+              <label class="field span-2">
+                <span>Title</span>
+                <input type="text" name="title" maxlength="120" required value="<%= values.title %>">
+              </label>
+              <label class="field">
+                <span>Room</span>
+                <input type="text" name="room" maxlength="60" value="<%= values.room ?? '' %>">
+              </label>
+              <label class="field">
+                <span>Urgency</span>
+                <select name="urgency">
+                  <% urgencies.forEach((level) => { %>
+                    <option <%= values.urgency === level ? 'selected' : '' %>><%= level %></option>
+                  <% }) %>
+                </select>
+              </label>
+              <label class="field span-2">
+                <span>Details</span>
+                <textarea name="description" rows="5" maxlength="2000" required><%= values.description %></textarea>
+              </label>
+              <div class="form-actions span-2">
+                <a class="btn btn-ghost" href="/requests/<%= repair.id %>">Discard</a>
+                <button class="btn btn-primary" type="submit">
+                  <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Save changes
+                </button>
+              </div>
+            </form>
+          </section>
+
+        <% } else { %>
+          <!-- ---------- Details ---------- -->
+          <section class="card detail-card">
+            <div class="detail-head">
+              <h1><%= repair.title %></h1>
+              <%- include('partials/status-badge', { status: repair.status }) %>
+            </div>
+
+            <div class="meta">
+              <%- include('partials/urgency-tag', { urgency: repair.urgency }) %>
+              <% if (repair.room) { %>
+                <span><i class="fa-solid fa-door-open" aria-hidden="true"></i> <%= repair.room %></span>
+              <% } %>
+              <span><i class="fa-solid fa-user" aria-hidden="true"></i> <%= displayName(repair.user) %></span>
+              <span><i class="fa-solid fa-calendar" aria-hidden="true"></i> Reported <%= formatDate(repair.createdAt) %></span>
+              <% if (repair.resolvedAt) { %>
+                <span><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Resolved <%= formatDate(repair.resolvedAt) %></span>
+              <% } %>
+            </div>
+
+            <p class="detail-desc"><%= repair.description %></p>
+
+            <div class="actions">
+              <% nextSteps.forEach((step) => { %>
+                <form class="inline-form" action="/requests/<%= repair.id %>/status?_method=PATCH" method="POST">
+                  <input type="hidden" name="status" value="<%= step.to %>">
+                  <button class="btn <%= step.style %>" type="submit">
+                    <i class="fa-solid fa-<%= step.icon %>" aria-hidden="true"></i> <%= step.label %>
+                  </button>
+                </form>
+              <% }) %>
+
+              <% if (canEdit) { %>
+                <a class="btn btn-ghost" href="/requests/<%= repair.id %>?edit=1">
+                  <i class="fa-solid fa-pen" aria-hidden="true"></i> Edit
+                </a>
+              <% } %>
+
+              <% if (canCancel) { %>
+                <form class="inline-form" action="/requests/<%= repair.id %>?_method=DELETE" method="POST"
+                      data-confirm="Cancel this repair request? This deletes it and its comments.">
+                  <button class="btn btn-danger" type="submit">
+                    <i class="fa-solid fa-trash" aria-hidden="true"></i> Cancel request
+                  </button>
+                </form>
+              <% } %>
+            </div>
+          </section>
+        <% } %>
+
+        <!-- ---------- Comments ---------- -->
+        <section class="card comments-card" id="comments">
+          <h2><i class="fa-solid fa-comments" aria-hidden="true"></i> Comments (<%= comments.length %>)</h2>
+
+          <% if (comments.length === 0) { %>
+            <p class="muted">No comments yet. Start the conversation below.</p>
+          <% } else { %>
+            <ol class="comment-list">
+              <% comments.forEach((comment) => { %>
+                <% const mine = sameId(comment.user, currentUser) %>
+                <li class="comment <%= mine ? 'comment-mine' : '' %>">
+                  <div class="comment-head">
+                    <strong><%= mine ? 'You' : displayName(comment.user) %></strong>
+                    <% if (comment.user) { %>
+                      <span class="role-tag"><%= comment.user.role %></span>
+                    <% } %>
+                    <time datetime="<%= comment.createdAt.toISOString() %>"><%= formatDateTime(comment.createdAt) %></time>
+                  </div>
+                  <p><%= comment.text %></p>
+                </li>
+              <% }) %>
+            </ol>
+          <% } %>
+
+          <form class="form comment-form" action="/requests/<%= repair.id %>/comments" method="POST">
+            <label class="field">
+              <span class="visually-hidden">Comment</span>
+              <textarea name="text" rows="3" maxlength="2000" placeholder="Write an update or question…" required></textarea>
+            </label>
+            <div class="form-actions">
+              <button class="btn btn-primary" type="submit">
+                <i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Post comment
+              </button>
+            </div>
+          </form>
+        </section>
+      </div>
+
+      <!-- ---------- Paper trail ---------- -->
+      <aside class="detail-side">
+        <section class="card timeline-card">
+          <h2><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> Paper trail</h2>
+          <ol class="timeline">
+            <% [...repair.statusHistory].reverse().forEach((entry) => { %>
+              <li class="timeline-item">
+                <%- include('partials/status-badge', { status: entry.status }) %>
+                <span class="timeline-who">by <%= sameId(entry.changedBy, currentUser) ? 'You' : displayName(entry.changedBy) %></span>
+                <time class="timeline-when" datetime="<%= entry.changedAt.toISOString() %>"><%= formatDateTime(entry.changedAt) %></time>
+              </li>
+            <% }) %>
+          </ol>
+        </section>
+      </aside>
+    </div>
+  </main>
+</body>
+</html>

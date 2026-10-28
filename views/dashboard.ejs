@@ -1,0 +1,143 @@
+<%- include('partials/head', { title: 'Dashboard' }) %>
+<body>
+  <%- include('partials/header') %>
+
+  <main class="page">
+    <%- include('partials/flash') %>
+
+    <div class="page-head">
+      <div>
+        <p class="eyebrow"><%= currentUser.role === 'landlord' ? 'Landlord dashboard' : 'Dashboard' %></p>
+        <h1><%= currentUser.role === 'landlord' ? 'All repair requests' : 'Your repair requests' %></h1>
+      </div>
+    </div>
+
+    <section class="stats" aria-label="Summary">
+      <div class="stat">
+        <span class="stat-icon"><i class="fa-solid fa-circle-dot" aria-hidden="true"></i></span>
+        <span class="stat-value"><%= stats.countsByStatus.Open %></span>
+        <span class="stat-label">Open</span>
+      </div>
+      <div class="stat">
+        <span class="stat-icon"><i class="fa-solid fa-hammer" aria-hidden="true"></i></span>
+        <span class="stat-value"><%= stats.countsByStatus['In Progress'] %></span>
+        <span class="stat-label">In progress</span>
+      </div>
+      <div class="stat">
+        <span class="stat-icon"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></span>
+        <span class="stat-value"><%= stats.countsByStatus.Resolved %></span>
+        <span class="stat-label">Resolved</span>
+      </div>
+      <div class="stat stat-feature">
+        <span class="stat-icon"><i class="fa-solid fa-stopwatch" aria-hidden="true"></i></span>
+        <span class="stat-value"><%= stats.averageDaysToFix ?? '–' %></span>
+        <span class="stat-label">Avg. days to fix</span>
+      </div>
+    </section>
+
+    <% if (currentUser.role === 'tenant') { %>
+      <details class="new-request" <%= showForm ? 'open' : '' %>>
+        <summary class="btn btn-primary">
+          <span class="when-closed"><i class="fa-solid fa-plus" aria-hidden="true"></i> New request</span>
+          <span class="when-open"><i class="fa-solid fa-xmark" aria-hidden="true"></i> Close</span>
+        </summary>
+
+        <div class="card new-request-card">
+          <h2><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i> Report a repair</h2>
+          <% if (formError) { %>
+            <p class="form-error" role="alert"><%= formError %></p>
+          <% } %>
+          <form class="form form-grid" action="/requests" method="POST">
+            <label class="field span-2">
+              <span>What's wrong?</span>
+              <input type="text" name="title" maxlength="120" placeholder="Leaky kitchen faucet" required value="<%= values.title ?? '' %>">
+            </label>
+            <label class="field">
+              <span>Room</span>
+              <input type="text" name="room" maxlength="60" placeholder="Kitchen" value="<%= values.room ?? '' %>">
+            </label>
+            <label class="field">
+              <span>Urgency</span>
+              <select name="urgency">
+                <% urgencies.forEach((level) => { %>
+                  <option <%= (values.urgency ?? 'Medium') === level ? 'selected' : '' %>><%= level %></option>
+                <% }) %>
+              </select>
+            </label>
+            <label class="field span-2">
+              <span>Details</span>
+              <textarea name="description" rows="4" maxlength="2000" placeholder="When did it start? What have you noticed?" required><%= values.description ?? '' %></textarea>
+            </label>
+            <div class="form-actions span-2">
+              <button class="btn btn-primary" type="submit">
+                <i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Submit request
+              </button>
+            </div>
+          </form>
+        </div>
+      </details>
+    <% } %>
+
+    <section class="toolbar" aria-label="Filters">
+      <nav class="chips" aria-label="Filter by status">
+        <a class="chip" href="<%= filterLink(filters, { status: '' }) %>" aria-current="<%= filters.status === '' ? 'true' : 'false' %>">All</a>
+        <% statuses.forEach((status) => { %>
+          <a class="chip" href="<%= filterLink(filters, { status }) %>" aria-current="<%= filters.status === status ? 'true' : 'false' %>"><%= status %></a>
+        <% }) %>
+      </nav>
+
+      <form class="select-inline" action="/dashboard" method="GET">
+        <% if (filters.status) { %>
+          <input type="hidden" name="status" value="<%= filters.status %>">
+        <% } %>
+        <label for="urgency-filter">Urgency</label>
+        <select id="urgency-filter" name="urgency" data-autosubmit>
+          <option value="">Any</option>
+          <% urgencies.forEach((level) => { %>
+            <option <%= filters.urgency === level ? 'selected' : '' %>><%= level %></option>
+          <% }) %>
+        </select>
+        <button class="btn btn-ghost btn-small js-hide" type="submit">Apply</button>
+      </form>
+    </section>
+
+    <section class="request-list">
+      <% if (repairs.length === 0) { %>
+        <div class="empty">
+          <% if (filters.status || filters.urgency) { %>
+            <i class="fa-solid fa-filter-circle-xmark" aria-hidden="true"></i>
+            <p>No requests match these filters.</p>
+            <p><a href="/dashboard">Clear filters</a></p>
+          <% } else { %>
+            <i class="fa-solid fa-clipboard-check" aria-hidden="true"></i>
+            <p>No repair requests yet.</p>
+            <% if (currentUser.role === 'tenant') { %>
+              <p class="muted">Use “New request” to report your first repair.</p>
+            <% } %>
+          <% } %>
+        </div>
+      <% } %>
+
+      <% repairs.forEach((repair) => { %>
+        <a class="card request-card" href="/requests/<%= repair.id %>">
+          <div class="request-card-top">
+            <h3><%= repair.title %></h3>
+            <%- include('partials/status-badge', { status: repair.status }) %>
+          </div>
+          <p class="request-card-desc"><%= repair.description %></p>
+          <div class="meta">
+            <%- include('partials/urgency-tag', { urgency: repair.urgency }) %>
+            <% if (repair.room) { %>
+              <span><i class="fa-solid fa-door-open" aria-hidden="true"></i> <%= repair.room %></span>
+            <% } %>
+            <span><i class="fa-solid fa-calendar" aria-hidden="true"></i> <%= formatDate(repair.createdAt) %></span>
+            <% if (currentUser.role === 'landlord') { %>
+              <span><i class="fa-solid fa-user" aria-hidden="true"></i> <%= displayName(repair.user) %></span>
+            <% } %>
+          </div>
+        </a>
+      <% }) %>
+    </section>
+  </main>
+</body>
+</html>

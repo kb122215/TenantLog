@@ -384,3 +384,42 @@ Content-Type: application/json
 
 ### 54. Landlord's stats (all tenants)
 GET {{base}}/requests/stats
+
+
+### 55. Short password
+POST {{base}}/auth/signup
+Content-Type: application/json
+
+{
+  "email": "newperson@example.com",
+  "password": "short"
+}
+
+### 56. Landlord without the code
+POST {{base}}/auth/signup
+Content-Type: application/json
+
+{
+  "email": "newlandlord@example.com",
+  "password": "supersecret123",
+  "role": "landlord"
+}
+
+### 57. Email already registered
+POST {{base}}/auth/signup
+Content-Type: application/json
+
+{
+  "email": "tia@example.com",
+  "password": "supersecret123"
+}
+
+### 58. A real new signup
+POST {{base}}/auth/signup
+Content-Type: application/json
+
+{
+  "email": "jordan@example.com",
+  "password": "supersecret123",
+  "name": "Jordan"
+}

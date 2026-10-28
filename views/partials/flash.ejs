@@ -1,0 +1,10 @@
+<% flash.success.forEach((message) => { %>
+  <p class="flash flash-success" role="status">
+    <i class="fa-solid fa-circle-check" aria-hidden="true"></i> <%= message %>
+  </p>
+<% }) %>
+<% flash.error.forEach((message) => { %>
+  <p class="flash flash-error" role="alert">
+    <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> <%= message %>
+  </p>
+<% }) %>

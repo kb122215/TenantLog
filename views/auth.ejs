@@ -1,0 +1,78 @@
+<%- include('partials/head', { title: mode === 'login' ? 'Log in' : 'Sign up' }) %>
+<body>
+  <main class="auth-layout">
+    <section class="auth-hero">
+      <div class="brand brand-large">
+        <span class="brand-mark"><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i></span>
+        <span class="brand-name">TenantLog</span>
+      </div>
+      <h1 class="hero-title">Every repair,<br>on the record.</h1>
+      <p class="hero-copy">Report a problem once. Track it from Open to Resolved, talk it through with your landlord, and keep a timestamped history in case you ever need it.</p>
+      <ul class="hero-points">
+        <li><i class="fa-solid fa-clock" aria-hidden="true"></i> Every update is timestamped</li>
+        <li><i class="fa-solid fa-comments" aria-hidden="true"></i> One thread per repair</li>
+        <li><i class="fa-solid fa-chart-simple" aria-hidden="true"></i> See how long fixes take</li>
+      </ul>
+    </section>
+
+    <section class="auth-panel">
+      <div class="card auth-card">
+        <nav class="tabs" aria-label="Log in or sign up">
+          <a class="tab" href="/login" aria-current="<%= mode === 'login' ? 'page' : 'false' %>">Log in</a>
+          <a class="tab" href="/signup" aria-current="<%= mode === 'signup' ? 'page' : 'false' %>">Sign up</a>
+        </nav>
+
+        <%- include('partials/flash') %>
+        <% if (formError) { %>
+          <p class="form-error" role="alert"><%= formError %></p>
+        <% } %>
+
+        <% if (mode === 'login') { %>
+          <form class="form" action="/login" method="POST">
+            <label class="field">
+              <span>Email</span>
+              <input type="email" name="email" autocomplete="email" required>
+            </label>
+            <label class="field">
+              <span>Password</span>
+              <input type="password" name="password" autocomplete="current-password" required>
+            </label>
+            <button class="btn btn-primary btn-block" type="submit">
+              <i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i> Log in
+            </button>
+          </form>
+        <% } else { %>
+          <form class="form" action="/signup" method="POST">
+            <label class="field">
+              <span>Name</span>
+              <input type="text" name="name" autocomplete="name" maxlength="80" value="<%= values.name ?? '' %>">
+            </label>
+            <label class="field">
+              <span>Email</span>
+              <input type="email" name="email" autocomplete="email" required value="<%= values.email ?? '' %>">
+            </label>
+            <label class="field">
+              <span>Password <small>(8+ characters)</small></span>
+              <input type="password" name="password" autocomplete="new-password" minlength="8" required>
+            </label>
+            <label class="field">
+              <span>I am a</span>
+              <select name="role">
+                <option value="tenant" <%= values.role !== 'landlord' ? 'selected' : '' %>>Tenant</option>
+                <option value="landlord" <%= values.role === 'landlord' ? 'selected' : '' %>>Landlord</option>
+              </select>
+            </label>
+            <label class="field" id="landlord-code-field">
+              <span>Landlord code <small>(landlords only)</small></span>
+              <input type="text" name="landlordCode" autocomplete="off">
+            </label>
+            <button class="btn btn-primary btn-block" type="submit">
+              <i class="fa-solid fa-user-plus" aria-hidden="true"></i> Create account
+            </button>
+          </form>
+        <% } %>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
