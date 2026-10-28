@@ -1,0 +1,386 @@
+@base = http://localhost:3001/api
+
+### 1. Sign up
+POST {{base}}/auth/signup
+Content-Type: application/json
+
+{
+  "email": "tia@example.com",
+  "password": "supersecret123",
+  "name": "Tia"
+}
+
+### 2. Who am I?
+GET {{base}}/auth/me
+
+### 3. Log out
+POST {{base}}/auth/logout
+
+### 4. Who am I now?
+GET {{base}}/auth/me
+
+### 5. Wrong password
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "tia@example.com",
+  "password": "wrong-password"
+}
+
+### 6. Log in
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "tia@example.com",
+  "password": "supersecret123"
+}
+
+### 7. Sign up again with the same email
+POST {{base}}/auth/signup
+Content-Type: application/json
+
+{
+  "email": "tia@example.com",
+  "password": "supersecret123"
+}
+
+
+
+### 8. Log in as Tia
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "tia@example.com",
+  "password": "supersecret123"
+}
+
+### 9. Submit a request (tries to sneak in status: Resolved)
+POST {{base}}/requests
+Content-Type: application/json
+
+{
+  "title": "Leaky faucet",
+  "description": "Kitchen faucet drips all night",
+  "room": "Kitchen",
+  "urgency": "High",
+  "status": "Resolved"
+}
+
+### 10. Missing title
+POST {{base}}/requests
+Content-Type: application/json
+
+{
+  "description": "No title here"
+}
+
+### 11. Bad urgency
+POST {{base}}/requests
+Content-Type: application/json
+
+{
+  "title": "Broken heater",
+  "description": "No heat in bedroom",
+  "urgency": "Whenever"
+}
+
+### 12. My dashboard
+GET {{base}}/requests
+
+### 13. Filter: Open only
+GET {{base}}/requests?status=Open
+
+### 14. Bad filter
+GET {{base}}/requests?status=Done
+
+### 15. Sign up a second tenant (this logs you in as them)
+POST {{base}}/auth/signup
+Content-Type: application/json
+
+{
+  "email": "sam@example.com",
+  "password": "supersecret123",
+  "name": "Sam"
+}
+
+### 16. Sam's dashboard
+GET {{base}}/requests
+
+### 17. Log out
+POST {{base}}/auth/logout
+
+### 18. Dashboard while logged out
+GET {{base}}/requests
+
+
+
+### 19. Log in as Tia
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "tia@example.com",
+  "password": "supersecret123"
+}
+
+### 20. Create a request and remember its id
+# @name heater
+POST {{base}}/requests
+Content-Type: application/json
+
+{
+  "title": "Broken heater",
+  "description": "No heat in the bedroom",
+  "room": "Bedroom",
+  "urgency": "Emergency"
+}
+
+###
+@heaterId = {{heater.response.body.id}}
+
+### 21. View it
+GET {{base}}/requests/{{heaterId}}
+
+### 22. Bad id
+GET {{base}}/requests/not-a-real-id
+
+### 23. Edit the description
+PATCH {{base}}/requests/{{heaterId}}
+Content-Type: application/json
+
+{
+  "description": "No heat in the bedroom, and it's getting below 60 at night"
+}
+
+### 24. Try to change status through the edit route
+PATCH {{base}}/requests/{{heaterId}}
+Content-Type: application/json
+
+{
+  "status": "Resolved"
+}
+
+### 25. Change status the right way
+PATCH {{base}}/requests/{{heaterId}}/status
+Content-Type: application/json
+
+{
+  "status": "In Progress"
+}
+
+### 26. Same status again
+PATCH {{base}}/requests/{{heaterId}}/status
+Content-Type: application/json
+
+{
+  "status": "In Progress"
+}
+
+### 27. Status that doesn't exist
+PATCH {{base}}/requests/{{heaterId}}/status
+Content-Type: application/json
+
+{
+  "status": "Fixed"
+}
+
+### 28. Try to cancel it (already In Progress)
+DELETE {{base}}/requests/{{heaterId}}
+
+### 29. Create one by mistake
+# @name oops
+POST {{base}}/requests
+Content-Type: application/json
+
+{
+  "title": "Oops",
+  "description": "Submitted by mistake"
+}
+
+###
+@oopsId = {{oops.response.body.id}}
+
+### 30. Cancel it
+DELETE {{base}}/requests/{{oopsId}}
+
+### 31. It's gone
+GET {{base}}/requests/{{oopsId}}
+
+### 32. Log in as Sam and try to view Tia's request
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "sam@example.com",
+  "password": "supersecret123"
+}
+
+### 32b. Sam views it
+GET {{base}}/requests/{{heaterId}}
+
+### 33. Sign up a landlord (logs you in as them)
+POST {{base}}/auth/signup
+Content-Type: application/json
+
+{
+  "email": "landlord@example.com",
+  "password": "supersecret123",
+  "name": "Lee",
+  "role": "landlord",
+  "landlordCode": "landlordfix"
+}
+
+### 34. Landlord sees everyone's requests
+GET {{base}}/requests
+
+### 35. Landlord tries to edit Tia's description
+PATCH {{base}}/requests/{{heaterId}}
+Content-Type: application/json
+
+{
+  "description": "Changed by landlord"
+}
+
+### 36. Landlord marks it Resolved
+PATCH {{base}}/requests/{{heaterId}}/status
+Content-Type: application/json
+
+{
+  "status": "Resolved"
+}
+
+### 37. Log back in as Tia
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "tia@example.com",
+  "password": "supersecret123"
+}
+
+### 38. Tia tries to edit the resolved request
+PATCH {{base}}/requests/{{heaterId}}
+Content-Type: application/json
+
+{
+  "title": "Edited after the fact"
+}
+
+
+### 39. Log in as Tia
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "tia@example.com",
+  "password": "supersecret123"
+}
+
+### 40. Tia comments
+POST {{base}}/requests/{{heaterId}}/comments
+Content-Type: application/json
+
+{
+  "text": "Any update? It was 58 degrees last night."
+}
+
+### 41. Empty comment
+POST {{base}}/requests/{{heaterId}}/comments
+Content-Type: application/json
+
+{
+  "text": "   "
+}
+
+### 42. Log in as the landlord
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "landlord@example.com",
+  "password": "supersecret123"
+}
+
+### 43. Landlord replies
+POST {{base}}/requests/{{heaterId}}/comments
+Content-Type: application/json
+
+{
+  "text": "HVAC tech is coming Thursday morning."
+}
+
+### 44. Read the thread
+GET {{base}}/requests/{{heaterId}}/comments
+
+### 45. Log in as Sam
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "sam@example.com",
+  "password": "supersecret123"
+}
+
+### 46. Sam tries to read Tia's thread
+GET {{base}}/requests/{{heaterId}}/comments
+
+### 47. Sam tries to comment on it
+POST {{base}}/requests/{{heaterId}}/comments
+Content-Type: application/json
+
+{
+  "text": "hi"
+}
+
+### 48. Log in as Tia again
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "tia@example.com",
+  "password": "supersecret123"
+}
+
+### 49. Create a request to cancel
+# @name temp
+POST {{base}}/requests
+Content-Type: application/json
+
+{
+  "title": "Temp request",
+  "description": "Will be cancelled"
+}
+
+###
+@tempId = {{temp.response.body.id}}
+
+### 50. Comment on it
+POST {{base}}/requests/{{tempId}}/comments
+Content-Type: application/json
+
+{
+  "text": "This comment should disappear"
+}
+
+### 51. Cancel it
+DELETE {{base}}/requests/{{tempId}}
+
+
+
+### 52. Tia's stats
+GET {{base}}/requests/stats
+
+### 53. Log in as the landlord
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "landlord@example.com",
+  "password": "supersecret123"
+}
+
+### 54. Landlord's stats (all tenants)
+GET {{base}}/requests/stats
