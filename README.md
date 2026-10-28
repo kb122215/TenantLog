@@ -6,9 +6,11 @@ TenantLog is a repair request tracker for renters and landlords. Tenants report 
 
 ### 🔗 [Open the live app on Render](https://tenantlog.onrender.com/login)
 
-![TenantLog login page](docs/screenshots/login.png)
+<img width="1188" height="927" alt="image" src="https://github.com/user-attachments/assets/98c11437-a1a7-45e5-b9d6-9e960ac8a570" />
 
-![TenantLog tenant dashboard](docs/screenshots/dashboard.png)
+
+<img width="979" height="574" alt="image" src="https://github.com/user-attachments/assets/64a05fcd-b01d-4b49-9463-76b4b640999b" />
+
 
 ---
 
@@ -55,7 +57,7 @@ Renters usually text their landlord about a leaky faucet. The message gets burie
 
 ## Try it
 
-Open the [live app](https://tenantlog.onrender.com) and either:
+Open the [live app]([https://tenantlog.onrender.com](https://tenantlog.onrender.com/login)) and either:
 
 - **Sign up as a tenant** with any email and an 8+ character password, then report a repair.
 - **Or use the demo tenant account:** `demo-tenant@example.com` / `demo-password-123`
