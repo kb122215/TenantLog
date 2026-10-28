@@ -4,7 +4,7 @@
 
 TenantLog is a repair request tracker for renters and landlords. Tenants report a problem once, landlords update its status, both sides talk it through in a comment thread, and every change is timestamped, so the tenant has a paper trail if there's ever a dispute.
 
-### 🔗 [Open the live app on Render](https://tenantlog.onrender.com)
+### 🔗 [Open the live app on Render](https://tenantlog.onrender.com/login)
 
 ![TenantLog login page](docs/screenshots/login.png)
 
